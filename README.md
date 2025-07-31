@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LiveKit Demo – Voice / Video Room with Python Backend
 
-## Getting Started
+This repository is a **minimal demo** that shows how to:
 
-First, run the development server:
+* Start a LiveKit room in your browser (Next.js frontend)
+* Spin up a Python process that joins the same room (Flask backend)
+* Exchange audio / video – everything runs locally in minutes
+
+No prior LiveKit experience required.
+
+---
+
+## 1-Minute Start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# install Node + Python deps
+npm install
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+
+# launch both services (Next.js + Flask)
+./run_local.sh
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The script:
+1. starts a Flask server on **http://127.0.0.1:5000** (Python room participant)
+2. starts a Next.js dev server on **http://localhost:3000** (or the next free port)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open your browser, navigate to **/gradient** or the home page, click **Start Voice Agent**, and you’ll enter the LiveKit room. The Python backend joins automatically.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Environment
 
-To learn more about Next.js, take a look at the following resources:
+Create a `.env.local` (already in `.gitignore`) with your LiveKit Cloud credentials:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+LIVEKIT_URL=wss://your-domain.livekit.cloud
+LIVEKIT_API_KEY=your_api_key
+LIVEKIT_API_SECRET=your_api_secret
+NEXT_PUBLIC_LK_URL=$LIVEKIT_URL
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The same values are also read by the Python backend.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/            Next.js pages & components
+backend/        Flask app that spawns the Python participant
+sales_agent*.py Example Python code that joins a room (can be replaced)
+run_local.sh    Helper script that starts both services
+```
+
+---
+
+## Customising
+
+* **Frontend** – edit `app/page.tsx` (or `app/gradient/page.tsx`) to tweak the UI.
+* **Backend** – replace `sales_agent___cerebras_and_livekit.py` with your own LiveKit logic; just keep the Flask wrapper.
+
+---
+
+## Troubleshooting
+
+* **Port already in use** – stop previous dev servers or change the ports in `run_local.sh`.
+* **Cannot connect / RegionError** – double-check your `LIVEKIT_URL` and that the credentials match the same LiveKit Cloud project.
+
+---
+
+Enjoy experimenting with LiveKit! 🎤🎥
