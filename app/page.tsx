@@ -89,18 +89,24 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="w-full h-full max-w-6xl">
-            <LiveKitRoom
-              token={token}
-              serverUrl={lkServerUrl}
-              connect
-              data-lk-theme="default"
-              style={{ height: '100vh', width: '100%' }}
-            >
-              <RoomAudioRenderer />
-              <VideoConference />
-              <TranscriptLogger />
-            </LiveKitRoom>
+          <div className="w-[95vw] h-[95vh] flex gap-4">
+            {/* Left side */}
+            <div className="flex-1 bg-gray-900 rounded-lg border-gray-700">
+
+              <div className="h-full">
+                <LiveKitRoom
+                  token={token}
+                  serverUrl={lkServerUrl}
+                  connect
+                  data-lk-theme="default"
+                  style={{ height: '100%', width: '100%' }}
+                >
+                  <RoomAudioRenderer />
+                  <VideoConference />
+                  <TranscriptLogger />
+                </LiveKitRoom>
+              </div>
+            </div>
           </div>
         )}
       </div>
