@@ -2,7 +2,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a0000;
 }
 
 @theme inline {
@@ -14,7 +14,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #0f172a;
     --foreground: #ededed;
   }
 }
@@ -23,4 +23,60 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Override LiveKit blue background */
+body, html, #__next, [data-lk-theme] {
+  background-color: #0f172a !important;
+}
+
+.lk-room-container {
+  background-color: #0f172a !important;
+}
+
+/* Override LiveKit blue accent colors */
+[data-lk-theme=default] {
+  --lk-accent-bg: #374151 !important;
+  --lk-accent2: #4b5563 !important;
+  --lk-accent3: #6b7280 !important;
+  --lk-accent4: #9ca3af !important;
+}
+
+/* Custom dark gray styling for LiveKit components */
+[data-lk-theme] {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+.lk-video-conference {
+  background-color: #1f2937 !important;
+}
+
+.lk-participant-tile {
+  background-color: #374151 !important;
+  border: 1px solid #4b5563 !important;
+  border-radius: 8px !important;
+}
+
+.lk-participant-media-video {
+  background-color: #111827 !important;
+}
+
+.lk-control-bar {
+  background-color: #374151 !important;
+  border-top: 1px solid #4b5563 !important;
+}
+
+.lk-button {
+  background-color: #4b5563 !important;
+  color: #f9fafb !important;
+  border: 1px solid #6b7280 !important;
+}
+
+.lk-button:hover {
+  background-color: #6b7280 !important;
+}
+
+.lk-grid-layout {
+  background-color: #1f2937 !important;
 }
