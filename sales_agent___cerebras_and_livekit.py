@@ -403,7 +403,20 @@ if __name__ == "__main__":
         # In dev mode, automatically join test-room once registered
 
         def _on_registered(*_):
-            asyncio.create_task(worker.simulate_job("test-room"))
+            # Build a participant token (regular room participant, not agent) so
+            # LiveKit Cloud accepts the connection without Agents beta enabled.
+            from livekit.protocol import api as lkapi  # type: ignore
+            import uuid, os
+
+            participant_id = f"dev-{uuid.uuid4().hex[:8]}"
+            token = (
+                lkapi.AccessToken(os.environ["LIVEKIT_API_KEY"], os.environ["LIVEKIT_API_SECRET"])
+                .with_identity(participant_id)
+                .with_grants(lkapi.VideoGrants(room_join=True, room="test-room"))
+                .to_jwt()
+            )
+
+            asyncio.create_task(worker.simulate_job(token))
 
         worker.on("worker_registered", _on_registered)
 
