@@ -244,7 +244,7 @@ class TechnicalAgent(Agent):
 
         You have access to the following company information:
 
-        {SALES_CONTEXT}
+        {context}
 
         CRITICAL RULES:
         - ONLY use information from the context above
@@ -311,7 +311,7 @@ class PricingAgent(Agent):
 
         You have access to the following company information:
 
-        {SALES_CONTEXT}
+        {context}
 
         CRITICAL RULES:
         - ONLY use pricing information from the context above
