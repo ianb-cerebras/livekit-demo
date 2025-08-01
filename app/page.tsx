@@ -11,7 +11,10 @@ export default function Home() {
 
   const startAgent = async () => {
     try {
-      await fetch('http://127.0.0.1:5000/agent/start', { method: 'POST' });
+      // Only try to start agent in development
+      if (process.env.NODE_ENV === 'development') {
+        await fetch('http://127.0.0.1:5000/agent/start', { method: 'POST' });
+      }
       setAgentRunning(true);
 
       // fetch LiveKit token
@@ -20,6 +23,14 @@ export default function Home() {
       setToken(json.token);
     } catch (err) {
       console.error('Failed to start agent', err);
+      // In production, just continue without the backend
+      if (process.env.NODE_ENV !== 'development') {
+        setAgentRunning(true);
+        // fetch LiveKit token
+        const res = await fetch(`/api/token?room=${roomName}&name=demo-user`);
+        const json = await res.json();
+        setToken(json.token);
+      }
     }
   };
 
