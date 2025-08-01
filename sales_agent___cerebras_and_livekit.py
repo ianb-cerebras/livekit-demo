@@ -39,9 +39,11 @@ print("✅ All packages installed successfully!")
 # IMPORTANT: Replace this with your actual Cartesia API key
 CARTESIA_API_KEY = "sk_car_DYtwySoPsURwNq4XHdcbpA"
 CEREBRAS_API_KEY = "csk-99k6tptdvethm46ey345fcvvpn3k55thcdjk9c9dj2r4e622"
-LIVEKIT_URL='wss://streaming-stt-9p0iel8m.livekit.cloud'
-LIVEKIT_API_KEY='APISrv26Nor3wAs'
-LIVEKIT_API_SECRET='LpDbeyCKuHhnzi21ESpATprtstESvfp2345vhsxlAWU'
+
+# Read LiveKit credentials from environment variables (or use defaults)
+LIVEKIT_URL = os.environ.get('LIVEKIT_URL', 'wss://streaming-stt-9p0iel8m.livekit.cloud')
+LIVEKIT_API_KEY = os.environ.get('LIVEKIT_API_KEY', 'APISrv26Nor3wAs')
+LIVEKIT_API_SECRET = os.environ.get('LIVEKIT_API_SECRET', 'LpDbeyCKuHhnzi21ESpATprtstESvfp2345vhsxlAWU')
 
 # Set the API key in environment variables (required for the services to work)
 os.environ["CARTESIA_API_KEY"] = CARTESIA_API_KEY
@@ -244,7 +246,7 @@ class TechnicalAgent(Agent):
 
         You have access to the following company information:
 
-        {SALES_CONTEXT}
+        {context}
 
         CRITICAL RULES:
         - ONLY use information from the context above
@@ -311,7 +313,7 @@ class PricingAgent(Agent):
 
         You have access to the following company information:
 
-        {SALES_CONTEXT}
+        {context}
 
         CRITICAL RULES:
         - ONLY use pricing information from the context above

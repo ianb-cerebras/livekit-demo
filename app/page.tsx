@@ -42,48 +42,60 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-        <h1 className="text-2xl font-bold mb-6 text-center">LiveKit Sales Agent</h1>
-        
-        <div className="space-y-4">
-          {!token && (
-          <div className="text-center space-y-4">
-            <button
-              onClick={startAgent}
-              disabled={agentRunning}
-              className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-            >
-              {agentRunning ? 'Agent Running' : 'Start Voice Agent'}
-            </button>
+    <div className="min-h-screen bg-black flex align-items: center; justify-center flex-col">
+      {/* Override div to prevent blue background */}
+      <div className="fixed inset-0 bg-black -z-10" ></div>
 
-            {agentRunning && (
-              <p className="text-sm text-green-600">Agent started – open the room to talk.</p>
-            )}
-          </div>) }
+      {/* Main Content */}
+      <div className="flex-1 flex items-center bg-black justify-center p-6">
+        {!token ? (
+          <div className="bg-black rounded-lg p-8 max-w-md w-full border border-gray-700">
+            <div className="text-center bg-black space-y-6">
+              <div className="w-16 h-16 bg-black rounded-full mx-auto flex items-center justify-center">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </div>
+              
+              <div>
+                <h2 className="text-white text-xl font-semibold mb-2">Join AI Agent Call</h2>
+                <p className="text-gray-400 text-sm">Start a conversation with our AI sales agent</p>
+              </div>
 
-          {token && (
-            <div className="h-[80vh] w-full">
+              <button
+                onClick={startAgent}
+                disabled={agentRunning}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 w-full"
+              >
+                {agentRunning ? 'Connecting...' : 'Start Call'}
+              </button>
+
+              {agentRunning && (
+                <div className="flex items-center justify-center space-x-2 text-green-400 text-sm">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span>Agent connecting...</span>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="w-[95vw] h-[95vh] flex items-center justify-center bg-black">
+            {/* Video Conference Container */}
+            <div className="w-full h-full bg-black rounded-lg border flex items-center justify-center">
               <LiveKitRoom
                 token={token}
                 serverUrl={lkServerUrl}
                 connect
                 data-lk-theme="default"
-                style={{ height: '100%' }}
+                style={{ height: '80%', width: '100%' }}
               >
                 <RoomAudioRenderer />
                 <VideoConference />
                 <TranscriptLogger />
               </LiveKitRoom>
             </div>
-          )}
-        </div>
-        
-        <div className="mt-6 text-sm text-gray-600">
-          <p>• The agent will automatically join the room</p>
-          <p>• Speak to interact with the AI sales agent</p>
-          <p>• The agent can transfer between specialists</p>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
