@@ -42,16 +42,16 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-900 flex flex-col">
+    <div className="min-h-screen bg-black flex align-items: center; justify-center flex-col">
       {/* Override div to prevent blue background */}
-      <div className="fixed inset-0 bg-stone-900 -z-10" ></div>
+      <div className="fixed inset-0 bg-black -z-10" ></div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center bg-stone-900 justify-center p-6">
+      <div className="flex-1 flex items-center bg-black justify-center p-6">
         {!token ? (
-          <div className="bg-stone-900 rounded-lg p-8 max-w-md w-full border border-gray-700">
-            <div className="text-center bg-stone-900 space-y-6">
-              <div className="w-16 h-16 bg-stone-900 rounded-full mx-auto flex items-center justify-center">
+          <div className="bg-black rounded-lg p-8 max-w-md w-full border border-gray-700">
+            <div className="text-center bg-black space-y-6">
+              <div className="w-16 h-16 bg-black rounded-full mx-auto flex items-center justify-center">
                 <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
@@ -79,22 +79,20 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="w-[95vw] h-[95vh] flex gap-4">
-            {/* Left side */}
-            <div className="flex-1 bg-stone-900 rounded-lg border-gray-700">
-              <div className="h-full">
-                <LiveKitRoom
-                  token={token}
-                  serverUrl={lkServerUrl}
-                  connect
-                  data-lk-theme="default"
-                  style={{ height: '80%', width: '100%' }}
-                >
-                  <RoomAudioRenderer />
-                  <VideoConference />
-                  <TranscriptLogger />
-                </LiveKitRoom>
-              </div>
+          <div className="w-[95vw] h-[95vh] flex items-center justify-center bg-black">
+            {/* Video Conference Container */}
+            <div className="w-full h-full bg-black rounded-lg border flex items-center justify-center">
+              <LiveKitRoom
+                token={token}
+                serverUrl={lkServerUrl}
+                connect
+                data-lk-theme="default"
+                style={{ height: '80%', width: '100%' }}
+              >
+                <RoomAudioRenderer />
+                <VideoConference />
+                <TranscriptLogger />
+              </LiveKitRoom>
             </div>
           </div>
         )}

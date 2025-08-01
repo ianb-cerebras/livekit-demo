@@ -1,0 +1,13 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "LIVEKIT_URL": "@livekit_url",
+    "LIVEKIT_API_KEY": "@livekit_api_key", 
+    "LIVEKIT_API_SECRET": "@livekit_api_secret",
+    "NEXT_PUBLIC_LK_URL": "@next_public_lk_url"
+  }
+} 
