@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0a0000;
+  /* Global dark theme palette */
+  --background: #0f172a;    /* deepest background */
+  --foreground: #f9fafb;    /* primary foreground text */
+
+  --panel: #1c1917;         /* cards / panels */
+  --surface: #1c1917;       /* surfaces such as participant tiles */
+  --border: #4b5563;        /* border lines */
+  --hover: #6b7280;         /* hover / lighter accents */
 }
 
 @theme inline {
@@ -27,11 +33,11 @@ body {
 
 /* Override LiveKit blue background */
 body, html, #__next, [data-lk-theme] {
-  background-color: #0f172a !important;
+  background-color: var(--background) !important;
 }
 
 .lk-room-container {
-  background-color: #0f172a !important;
+  background-color: var(--panel) !important;
 }
 
 /* Override LiveKit blue accent colors */
@@ -44,17 +50,17 @@ body, html, #__next, [data-lk-theme] {
 
 /* Custom dark gray styling for LiveKit components */
 [data-lk-theme] {
-  background-color: #1f2937 !important;
-  color: #f9fafb !important;
+  background-color: var(--panel) !important;
+  color: var(--foreground) !important;
 }
 
 .lk-video-conference {
-  background-color: #1f2937 !important;
+  background-color: var(--panel) !important;
 }
 
 .lk-participant-tile {
-  background-color: #374151 !important;
-  border: 1px solid #4b5563 !important;
+  background-color: var(--surface) !important;
+  border: 1px solid var(--border) !important;
   border-radius: 8px !important;
 }
 
@@ -63,20 +69,20 @@ body, html, #__next, [data-lk-theme] {
 }
 
 .lk-control-bar {
-  background-color: #374151 !important;
-  border-top: 1px solid #4b5563 !important;
+  background-color: var(--surface) !important;
+  border-top: 1px solid var(--border) !important;
 }
 
 .lk-button {
-  background-color: #4b5563 !important;
-  color: #f9fafb !important;
-  border: 1px solid #6b7280 !important;
+  background-color: var(--border) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--hover) !important;
 }
 
 .lk-button:hover {
-  background-color: #6b7280 !important;
+  background-color: var(--hover) !important;
 }
 
 .lk-grid-layout {
-  background-color: #1f2937 !important;
+  background-color: var(--panel) !important;
 }
