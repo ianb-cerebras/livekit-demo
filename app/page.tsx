@@ -1,8 +1,97 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LiveKitRoom, VideoConference, RoomAudioRenderer, useDataChannel } from '@livekit/components-react';
+import { LiveKitRoom, VideoConference, RoomAudioRenderer, useDataChannel, useRemoteParticipants, useIsSpeaking, useConnectionState } from '@livekit/components-react';
+import { ConnectionState } from 'livekit-client';
 import '@livekit/components-styles';
+
+// Inner component that uses the speaking hook with a valid participant
+const SpeakingIndicator = ({ participant }: { participant: any }) => {
+  const isSpeaking = useIsSpeaking(participant);
+  
+  return (
+    <div className="h-full flex flex-col items-center justify-center">
+      <div className="relative w-64 h-64 flex items-center justify-center">
+        {/* Background glow effect */}
+        <div className={`absolute inset-0 rounded-full transition-all duration-1000 ${
+          isSpeaking 
+            ? 'bg-gradient-to-r from-indigo-500/30 to-purple-500/30 blur-3xl scale-125' 
+            : 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 blur-2xl scale-100'
+        }`}></div>
+        
+        {/* Main speaking circle */}
+        <div className={`relative z-10 w-48 h-48 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 transition-all duration-300 flex items-center justify-center ${
+          isSpeaking 
+            ? 'scale-110 shadow-2xl shadow-purple-500/50' 
+            : 'scale-100 shadow-xl shadow-purple-500/20'
+        }`}>
+          {/* Inner circles for depth */}
+          <div className={`absolute inset-2 rounded-full bg-gradient-to-br from-indigo-600/50 to-purple-600/50 transition-all duration-300 ${
+            isSpeaking ? 'scale-105' : 'scale-100'
+          }`}></div>
+          <div className={`absolute inset-4 rounded-full bg-gradient-to-br from-indigo-700/30 to-purple-700/30 transition-all duration-300 ${
+            isSpeaking ? 'scale-110' : 'scale-100'
+          }`}></div>
+          
+          {/* Center pulse */}
+          <div className={`relative w-24 h-24 rounded-full bg-white/20 transition-all duration-300 ${
+            isSpeaking ? 'scale-110 bg-white/30' : 'scale-100'
+          }`}></div>
+        </div>
+        
+        {/* Animated rings when speaking */}
+        {isSpeaking && (
+          <>
+            <div className="absolute w-56 h-56 rounded-full border-2 border-indigo-400/60 animate-ping"></div>
+            <div className="absolute w-64 h-64 rounded-full border border-purple-400/40 animate-ping" style={{ animationDelay: '0.3s' }}></div>
+            <div className="absolute w-72 h-72 rounded-full border border-pink-400/20 animate-ping" style={{ animationDelay: '0.6s' }}></div>
+          </>
+        )}
+      </div>
+      
+      <div className="mt-8 text-center">
+        <div className="text-white font-bold text-2xl mb-2">
+          AI Sales Agent
+        </div>
+        <div className={`text-lg font-medium transition-all duration-300 ${
+          isSpeaking 
+            ? 'text-purple-400 scale-105' 
+            : 'text-gray-400 scale-100'
+        }`}>
+          {isSpeaking ? 'Speaking...' : 'Listening...'}
+        </div>
+        <div className="mt-4 text-gray-500 text-sm">
+          Powered by LiveKit
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Main component that handles participant loading
+const AgentSpeakingCircle = () => {
+  const remoteParticipants = useRemoteParticipants();
+  const connectionState = useConnectionState();
+  
+  // Find the agent participant (usually the first remote participant)
+  const agentParticipant = remoteParticipants[0];
+  
+  // Show loading state while connecting
+  if (connectionState !== ConnectionState.Connected || !agentParticipant) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center">
+        <div className="relative w-48 h-48 flex items-center justify-center">
+          <div className="w-40 h-40 rounded-full bg-gray-700 animate-pulse"></div>
+        </div>
+        <div className="mt-8 text-gray-400 font-medium">
+          Connecting to agent...
+        </div>
+      </div>
+    );
+  }
+  
+  return <SpeakingIndicator participant={agentParticipant} />;
+};
 
 export default function Home() {
   const [roomName] = useState('test-room');
@@ -91,7 +180,16 @@ export default function Home() {
                   style={{ height: '80%', width: '100%' }}
                 >
                   <RoomAudioRenderer />
-                  <VideoConference />
+                  <div className="h-full flex">
+                    {/* Agent speaking circle on the left */}
+                    <div className="w-2/5 bg-gradient-to-br from-stone-800 to-stone-900 rounded-lg border border-gray-700 overflow-hidden">
+                      <AgentSpeakingCircle />
+                    </div>
+                    {/* Video conference on the right */}
+                    <div className="flex-1 ml-4">
+                      <VideoConference />
+                    </div>
+                  </div>
                   <TranscriptLogger />
                 </LiveKitRoom>
               </div>
