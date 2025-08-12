@@ -1,58 +1,59 @@
-# LiveKit Demo (Next.js + Flask Agent)
+## LiveKit Demo (Next.js + Flask Agent)
 
-A production-ready example that pairs a Next.js frontend with a Python (Flask) controller that launches a LiveKit Agents worker. Users enter their Cerebras and Cartesia API keys, click Start Call, and join a LiveKit room with:
+Production-ready example that pairs a Next.js frontend with a Python (Flask) controller that launches a LiveKit Agents worker. Users enter their Cerebras and Cartesia API keys, click Start Call, and join a LiveKit room with:
 
-- A custom animated "speaking" avatar for the agent
-- A simple local camera tile
+- Animated speaking avatar for the agent
+- Local camera tile
 - Server-minted LiveKit JWTs
 
 ---
 
-## Overview
-
-- Frontend: Next.js 15 (App Router) with `@livekit/components-react`
-- Backend: Flask (controller) spawns the Python LiveKit agent as a subprocess
-- Agent: `sales_agent___cerebras_and_livekit.py` (LiveKit Agents + Cerebras LLM + Cartesia STT/TTS + Silero VAD)
-- Token route: `app/api/token/route.ts` mints JWTs using `livekit-server-sdk` (Node runtime)
+## Architecture
 
 ```
 Browser ──> Vercel (Next.js)
-  ├─ GET /api/token  → mints LiveKit JWT (uses LIVEKIT_* envs)
-  └─ POST {keys} → Render (Flask) /agent/start
-                     └─ launches agent subprocess with env overrides
-Agent ↔ LiveKit Cloud (URL/KEY/SECRET)
+  ├─ GET /api/token             → mints LiveKit JWT (uses LIVEKIT_* envs)
+  └─ POST /api/agent/start      → proxies to Render backend
+                                 └─ /agent/start (Flask) launches agent subprocess
+Agent ↔ LiveKit Cloud (LIVEKIT_URL / KEY / SECRET)
 ```
+
+Repo highlights:
+- `app/page.tsx` – UI, agent speaking avatar, camera tile, key inputs
+- `app/api/token/route.ts` – Node runtime token route using `livekit-server-sdk`
+- `app/api/agent/start/route.ts` – Server-side proxy to backend (uses `BACKEND_URL`)
+- `backend/app.py` – Flask API (`/agent/start|stop|status`, `/healthz`, CORS)
+- `backend/agent_runner.py` – Spawns the Python agent subprocess with env overrides
+- `sales_agent___cerebras_and_livekit.py` – Agent entrypoint; reads all keys from env
 
 ---
 
 ## Prerequisites
 
-- Node.js 18+ (dev)
-- Python 3.9+ (dev)
-- LiveKit Cloud app with URL/API Key/Secret
-- Cerebras API key (user-provided at runtime)
-- Cartesia API key (user-provided at runtime)
+- Node.js 18+
+- Python 3.9+
+- LiveKit Cloud application (URL, API Key, Secret)
+- Cerebras & Cartesia API keys (users enter these at runtime)
 
 ---
 
 ## Environment Variables
 
 ### Frontend (Vercel)
-- `LIVEKIT_URL`: `wss://<your-app>.livekit.cloud`
-- `LIVEKIT_API_KEY`: LiveKit API key
-- `LIVEKIT_API_SECRET`: LiveKit API secret
-- `NEXT_PUBLIC_BACKEND_URL`: Public HTTPS URL of your backend (Render), e.g. `https://<service>.onrender.com`
+- `BACKEND_URL` – Public HTTPS URL of the Render backend, e.g. `https://<service>.onrender.com`
+- `LIVEKIT_URL` – `wss://<your-app>.livekit.cloud` (LiveKit application URL)
+- `LIVEKIT_API_KEY` – LiveKit API key
+- `LIVEKIT_API_SECRET` – LiveKit API secret
 
 Notes:
-- The token route returns `{ token, url }`. The frontend uses that `url` as `LiveKitRoom.serverUrl` to avoid drift.
-- The `NEXT_PUBLIC_*` prefix is required for the value to be exposed to the browser bundle.
+- The token route returns `{ token, url }`; the UI uses this `url` as `LiveKitRoom.serverUrl` for alignment.
+- Prefer `BACKEND_URL` (server-only) over a `NEXT_PUBLIC_*` to avoid CORS/mixed-content and client-stale URL issues.
 
 ### Backend (Render)
-- `LIVEKIT_URL`: `wss://<your-app>.livekit.cloud`
-- `LIVEKIT_API_KEY`: LiveKit API key
-- `LIVEKIT_API_SECRET`: LiveKit API secret
-- `FRONTEND_ORIGIN`: `https://<your-frontend>.vercel.app` (CORS allowlist)
-- Optional defaults: `CARTESIA_API_KEY`, `CEREBRAS_API_KEY` (users can still override on Start)
+- `LIVEKIT_URL` – `wss://<your-app>.livekit.cloud` (not an STT host)
+- `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`
+- `FRONTEND_ORIGIN` – `https://<your-vercel-app>.vercel.app` (no trailing slash)
+- Optional defaults: `CARTESIA_API_KEY`, `CEREBRAS_API_KEY` (users can still override via UI)
 
 ---
 
@@ -66,93 +67,92 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2) Run both servers with one command
+2) Run both servers
 ```bash
-chmod +x run_local.sh
 ./run_local.sh
 ```
-- Flask backend on `http://127.0.0.1:5000`
-- Next.js dev server on `http://localhost:3000` (or `3001` if busy)
+- Backend: `http://127.0.0.1:5000`
+- Frontend: `http://localhost:3000` (or falls back to 3001)
 
-3) Open the app, enter your Cerebras + Cartesia keys, click “Start Call”.
+3) Open the app, enter Cerebras/Cartesia keys, click “Start Call”.
 
 ---
 
 ## Production Deployment
 
-### Backend on Render
-- Build command:
+### Backend on Render (Flask)
+- Build:
 ```bash
 pip install -r requirements.txt
 ```
-- Start command (single worker to avoid duplicate agents):
+- Start:
 ```bash
 gunicorn backend.app:app -w 1 -k gthread -b 0.0.0.0:$PORT --threads 2 --preload --timeout 120
 ```
-- Health check path: `/healthz`
-- Set envs listed above
+- Health check: `/healthz`
+- Set envs (see above). Keep `workers=1` to avoid multiple agent subprocesses.
 
-CORS is restricted via `FRONTEND_ORIGIN`. Add preview origins if you need preview builds to work.
-
-### Frontend on Vercel
-- Ensure `app/api/token/route.ts` contains:
+### Frontend on Vercel (Next.js)
+- Token route must run on Node:
 ```ts
+// app/api/token/route.ts
 export const runtime = 'nodejs';
 ```
-- Set envs listed above (LIVEKIT_* and NEXT_PUBLIC_BACKEND_URL)
-- Deploy. The token route mints JWTs, returns `{ token, url }`. The frontend uses `url` for `LiveKitRoom`.
+- Set envs (`BACKEND_URL`, `LIVEKIT_*`).
+- Deploy. The UI uses the token route’s `url` for `LiveKitRoom.serverUrl`.
 
 ---
 
 ## How the UI Works
 
-- Landing card collects user Cerebras + Cartesia keys (password inputs). Start button is disabled until both are entered.
+- Join card collects user Cerebras + Cartesia keys (password inputs). Start button is disabled until both are present.
 - On Start:
-  - Frontend POSTs `{ cerebrasKey, cartesiaKey }` to `${NEXT_PUBLIC_BACKEND_URL}/agent/start`
-  - Backend merges keys into the agent subprocess environment and launches the Python agent
-  - Frontend calls `/api/token` to get `{ token, url }` and joins the room
-- In-call UI:
-  - Left: Agent speaking circle (animated via `useIsSpeaking`)
-  - Right: Local camera tile (rendered via `useTracks` + `TrackLoop` + `ParticipantTile`)
+  - POST `/api/agent/start` (server-side proxy) with `{ cerebrasKey, cartesiaKey }`
+  - Backend injects keys into env and launches the agent subprocess
+  - UI calls `/api/token` to get `{ token, url }` and joins the room
+- In-call:
+  - Left: speaking avatar driven by LiveKit `useIsSpeaking`
+  - Right: local camera rendered via `useTracks` + `TrackLoop` + `ParticipantTile`
 
 ---
 
-## Key Files
+## Verification Checklist
 
-- `app/page.tsx`: Main page, speaking avatar, camera tile, API key inputs, room join logic
-- `app/api/token/route.ts`: Node runtime token route using `livekit-server-sdk`
-- `backend/app.py`: Flask app, CORS, `/agent/*` endpoints, `/healthz`
-- `backend/agent_runner.py`: Spawns the Python agent subprocess with env overrides
-- `sales_agent___cerebras_and_livekit.py`: LiveKit agent entrypoint; reads all keys from env
-- `run_local.sh`: Helper to run Flask + Next.js together
-- `requirements.txt`: Python deps (LiveKit Agents, Flask, Gunicorn, etc.)
+- Backend healthy: `curl -sS https://<render>.onrender.com/healthz` → `{ "ok": true }`
+- Vercel Network tab on Start Call:
+  - POST `/api/agent/start` (same origin; not `127.0.0.1`)
+  - GET `/api/token` returns `{ token, url: wss://<your-app>.livekit.cloud }`
+- Render logs show agent starting without region-info errors.
 
 ---
 
 ## Troubleshooting
 
-- net::ERR_CONNECTION_REFUSED on `/agent/start`
-  - Your frontend is calling `http://127.0.0.1:5000` in production. Set `NEXT_PUBLIC_BACKEND_URL` on Vercel to your Render URL and redeploy.
-  - Verify backend health: open `https://<render>.onrender.com/healthz`.
-
-- “No room provided” or hooks failing
-  - Ensure components using LiveKit hooks are rendered inside a single `LiveKitRoom` provider.
-
-- “No TrackRef” error
-  - Use `useTracks([Track.Source.Camera])` + `TrackLoop` + `ParticipantTile`, or pass a full `trackRef={{ participant, source: Track.Source.Camera }}`.
+- Browser POSTs to `127.0.0.1:5000`
+  - Set `BACKEND_URL` on Vercel and redeploy. Hard refresh or use Incognito to bust cache.
 
 - LiveKit “region info” / JSON decode error
-  - Use your application URL `wss://<project>.livekit.cloud` (not an STT cluster URL). Ensure the same URL is used across frontend and backend.
+  - Ensure `LIVEKIT_URL` is the application URL `wss://<your-app>.livekit.cloud` on both Vercel and Render (not an STT host). Make sure URL/key/secret all belong to the same LiveKit app.
 
-- Port 3000 in use
-  - Next.js will fall back to 3001 automatically, or free the port: `kill $(lsof -ti :3000)`
+- “No room provided” or hooks failing
+  - Ensure components using LiveKit hooks render inside a single `LiveKitRoom`.
+
+- “No TrackRef” error
+  - Use `useTracks([Track.Source.Camera])` + `TrackLoop` + `ParticipantTile` or pass a full trackRef.
+
+- Console spam from 1Password extension
+  - It’s harmless. Disable the extension or its desktop-app integration.
+
+- Port 3000 in use (local)
+  - Next.js falls back to 3001 automatically, or free the port: `kill $(lsof -ti :3000)`
 
 ---
 
 ## Security Notes
 
-- Secrets (LIVEKIT_API_SECRET) live only on server runtimes (Vercel API route, Render). The browser never sees them.
-- User-provided Cerebras/Cartesia keys are posted over HTTPS to the backend and injected into the agent env. They are not logged.
+- Secrets (e.g., `LIVEKIT_API_SECRET`) are server-only (Vercel API route, Render). The browser never sees them.
+- User-provided Cerebras & Cartesia keys are sent over HTTPS to the backend and injected into the agent env. They are not logged.
+- Rotate secrets if they appear in logs or chat.
 
 ---
 
@@ -162,13 +162,13 @@ export const runtime = 'nodejs';
 # Dev (both servers)
 ./run_local.sh
 
-# Backend only (dev)
+# Backend only
 source venv/bin/activate && python backend/app.py
 
-# Frontend only (dev)
+# Frontend only
 npm run dev
 
-# Build (frontend)
+# Build frontend
 npm run build
 ```
 
@@ -176,4 +176,4 @@ npm run build
 
 ## License
 
-This repository is provided as an example demo. Add a license if you intend to distribute or modify it publicly.
+This repository is provided as an example demo.
