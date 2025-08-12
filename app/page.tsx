@@ -131,7 +131,7 @@ export default function Home() {
 
   const startAgent = async () => {
     try {
-      await fetch(`${backendUrl}/agent/start`, {
+      await fetch(`/api/agent/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cerebrasKey, cartesiaKey }),
