@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
-import agent_runner
+from . import agent_runner
 
 app = Flask(__name__)
 
