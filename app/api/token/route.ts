@@ -1,3 +1,5 @@
+export const runtime = 'nodejs';
+
 import { NextRequest, NextResponse } from 'next/server';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - livekit-server-sdk has no types but works at runtime

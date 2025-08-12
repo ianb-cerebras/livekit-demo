@@ -5,6 +5,8 @@ import { LiveKitRoom, RoomAudioRenderer, ParticipantTile, TrackLoop, useDataChan
 import { ConnectionState, Track } from 'livekit-client';
 import '@livekit/components-styles';
 
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://127.0.0.1:5000';
+
 // Inner component that uses the speaking hook with a valid participant
 const SpeakingIndicator = ({ participant }: { participant: any }) => {
   const isSpeaking = useIsSpeaking(participant);
@@ -123,22 +125,30 @@ export default function Home() {
   const [roomName] = useState('test-room');
   const [agentRunning, setAgentRunning] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const [serverUrl, setServerUrl] = useState<string | null>(null);
+  const [cerebrasKey, setCerebrasKey] = useState('');
+  const [cartesiaKey, setCartesiaKey] = useState('');
 
   const startAgent = async () => {
     try {
-      await fetch('http://127.0.0.1:5000/agent/start', { method: 'POST' });
+      await fetch(`${backendUrl}/agent/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cerebrasKey, cartesiaKey }),
+      });
       setAgentRunning(true);
 
       // fetch LiveKit token
       const res = await fetch(`/api/token?room=${roomName}&name=demo-user`);
       const json = await res.json();
       setToken(json.token);
+      setServerUrl(json.url);
     } catch (err) {
       console.error('Failed to start agent', err);
     }
   };
 
-  const lkServerUrl = process.env.NEXT_PUBLIC_LK_URL ?? 'wss://streaming-stt-9p0iel8m.livekit.cloud';
+  const lkServerUrl = serverUrl ?? process.env.NEXT_PUBLIC_LK_URL ?? 'wss://streaming-stt-9p0iel8m.livekit.cloud';
 
   // Helper component that logs transcript messages once inside LiveKitRoom context
   const TranscriptLogger = () => {
@@ -177,9 +187,33 @@ export default function Home() {
                 <p className="text-gray-400 text-sm">Start a conversation with our AI sales agent</p>
               </div>
 
+              {/* API key inputs */}
+              <div className="space-y-4 text-left">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Cerebras API Key</label>
+                  <input
+                    type="password"
+                    value={cerebrasKey}
+                    onChange={(e) => setCerebrasKey(e.target.value)}
+                    placeholder="csk-..."
+                    className="w-full px-3 py-2 rounded bg-stone-800 border border-gray-700 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Cartesia API Key</label>
+                  <input
+                    type="password"
+                    value={cartesiaKey}
+                    onChange={(e) => setCartesiaKey(e.target.value)}
+                    placeholder="sk_car_..."
+                    className="w-full px-3 py-2 rounded bg-stone-800 border border-gray-700 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+
               <button
                 onClick={startAgent}
-                disabled={agentRunning}
+                disabled={agentRunning || !cerebrasKey || !cartesiaKey}
                 className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 w-full"
               >
                 {agentRunning ? 'Connecting...' : 'Start Call'}

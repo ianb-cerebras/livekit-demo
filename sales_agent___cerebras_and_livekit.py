@@ -36,23 +36,19 @@ from pathlib import Path
 # Install all required packages for our voice sales agent
 print("✅ All packages installed successfully!")
 
-# IMPORTANT: Replace this with your actual Cartesia API key
-CARTESIA_API_KEY = "sk_car_DYtwySoPsURwNq4XHdcbpA"
-CEREBRAS_API_KEY = "csk-99k6tptdvethm46ey345fcvvpn3k55thcdjk9c9dj2r4e622"
-LIVEKIT_URL='wss://streaming-stt-9p0iel8m.livekit.cloud'
-LIVEKIT_API_KEY='APISrv26Nor3wAs'
-LIVEKIT_API_SECRET='LpDbeyCKuHhnzi21ESpATprtstESvfp2345vhsxlAWU'
+# Read required configuration from environment
+CARTESIA_API_KEY = os.environ.get("CARTESIA_API_KEY", "")
+CEREBRAS_API_KEY = os.environ.get("CEREBRAS_API_KEY", "")
+LIVEKIT_URL = os.environ.get("LIVEKIT_URL", "")
+LIVEKIT_API_KEY = os.environ.get("LIVEKIT_API_KEY", "")
+LIVEKIT_API_SECRET = os.environ.get("LIVEKIT_API_SECRET", "")
 
-# Set the API key in environment variables (required for the services to work)
-os.environ["CARTESIA_API_KEY"] = CARTESIA_API_KEY
-os.environ["CEREBRAS_API_KEY"] = CEREBRAS_API_KEY
-# Set LiveKit environment variables
-os.environ["LIVEKIT_API_KEY"] = LIVEKIT_API_KEY
-os.environ["LIVEKIT_API_SECRET"] = LIVEKIT_API_SECRET
-os.environ["LIVEKIT_URL"] = LIVEKIT_URL
+if not CARTESIA_API_KEY or not CEREBRAS_API_KEY:
+    print("⚠️ Missing CARTESIA_API_KEY or CEREBRAS_API_KEY in environment.")
+if not LIVEKIT_URL or not LIVEKIT_API_KEY or not LIVEKIT_API_SECRET:
+    print("⚠️ Missing LiveKit config in environment (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET).")
 
 print("✅ Libraries imported and API keys configured")
-print("🔑 Make sure to replace 'your_cartesia_api_key_here' and 'your_cerebras_api_key_here' with your actual API keys!")
 
 """## Step 2: Context Loading Function
 
