@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LiveKitRoom, VideoConference, RoomAudioRenderer, useDataChannel, useRemoteParticipants, useIsSpeaking, useConnectionState } from '@livekit/components-react';
-import { ConnectionState } from 'livekit-client';
+import { LiveKitRoom, RoomAudioRenderer, ParticipantTile, TrackLoop, useDataChannel, useRemoteParticipants, useIsSpeaking, useConnectionState, useLocalParticipant, useRoomContext, useTracks } from '@livekit/components-react';
+import { ConnectionState, Track } from 'livekit-client';
 import '@livekit/components-styles';
 
 // Inner component that uses the speaking hook with a valid participant
@@ -93,6 +93,32 @@ const AgentSpeakingCircle = () => {
   return <SpeakingIndicator participant={agentParticipant} />;
 };
 
+// Local participant camera tile; enables local camera/mic on connect
+const LocalCameraTile = () => {
+  const room = useRoomContext();
+  const { localParticipant } = useLocalParticipant();
+  const connectionState = useConnectionState();
+  const cameraTracks = useTracks([Track.Source.Camera]);
+  const localCameraTracks = cameraTracks.filter((t) => t.participant.isLocal);
+
+  useEffect(() => {
+    if (connectionState === ConnectionState.Connected && room) {
+      room.localParticipant.setCameraEnabled(true).catch(() => {});
+      room.localParticipant.setMicrophoneEnabled(true).catch(() => {});
+    }
+  }, [connectionState, room]);
+
+  if (!localParticipant) return null;
+
+  return (
+    <div className="h-full">
+      <TrackLoop tracks={localCameraTracks}>
+        <ParticipantTile style={{ height: '100%', width: '100%' }} />
+      </TrackLoop>
+    </div>
+  );
+};
+
 export default function Home() {
   const [roomName] = useState('test-room');
   const [agentRunning, setAgentRunning] = useState(false);
@@ -168,33 +194,26 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="w-[95vw] h-[95vh] flex gap-4">
-            {/* Left side */}
-            <div className="flex-1 bg-stone-900 rounded-lg border-gray-700">
-              <div className="h-full">
-                <LiveKitRoom
-                  token={token}
-                  serverUrl={lkServerUrl}
-                  connect
-                  data-lk-theme="default"
-                  style={{ height: '80%', width: '100%' }}
-                >
-                  <RoomAudioRenderer />
-                  <div className="h-full flex">
-                    {/* Agent speaking circle on the left */}
-                    <div className="w-2/5 bg-gradient-to-br from-stone-800 to-stone-900 rounded-lg border border-gray-700 overflow-hidden">
-                      <AgentSpeakingCircle />
-                    </div>
-                    {/* Video conference on the right */}
-                    <div className="flex-1 ml-4">
-                      <VideoConference />
-                    </div>
-                  </div>
-                  <TranscriptLogger />
-                </LiveKitRoom>
+          <LiveKitRoom
+            token={token}
+            serverUrl={lkServerUrl}
+            connect
+            data-lk-theme="default"
+            style={{ width: '100%' }}
+          >
+            <RoomAudioRenderer />
+            <div className="w-[95vw] h-[50vh] mx-auto flex items-center justify-center gap-8">
+              {/* Left: speaking section */}
+              <div className="flex-1 h-full rounded-lg border border-gray-700 bg-stone-900 flex items-center justify-center p-8">
+                <AgentSpeakingCircle />
+              </div>
+              {/* Right: local camera */}
+              <div className="flex-1 h-full rounded-lg border border-gray-700 overflow-hidden bg-stone-900">
+                <LocalCameraTile />
               </div>
             </div>
-          </div>
+            <TranscriptLogger />
+          </LiveKitRoom>
         )}
       </div>
     </div>
