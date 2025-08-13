@@ -5,7 +5,7 @@ import { LiveKitRoom, RoomAudioRenderer, ParticipantTile, TrackLoop, useDataChan
 import { ConnectionState, Track } from 'livekit-client';
 import '@livekit/components-styles';
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://127.0.0.1:5000';
+// Removed direct backend URL usage; requests go through /api/agent/start proxy
 
 // Inner component that uses the speaking hook with a valid participant
 const SpeakingIndicator = ({ participant }: { participant: any }) => {
@@ -127,14 +127,13 @@ export default function Home() {
   const [token, setToken] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [cerebrasKey, setCerebrasKey] = useState('');
-  const [cartesiaKey, setCartesiaKey] = useState('');
-
+ 
   const startAgent = async () => {
     try {
       await fetch(`/api/agent/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cerebrasKey, cartesiaKey }),
+        body: JSON.stringify({ cerebrasKey }),
       });
       setAgentRunning(true);
 
@@ -199,21 +198,11 @@ export default function Home() {
                     className="w-full px-3 py-2 rounded bg-stone-800 border border-gray-700 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Cartesia API Key</label>
-                  <input
-                    type="password"
-                    value={cartesiaKey}
-                    onChange={(e) => setCartesiaKey(e.target.value)}
-                    placeholder="sk_car_..."
-                    className="w-full px-3 py-2 rounded bg-stone-800 border border-gray-700 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
               </div>
 
               <button
                 onClick={startAgent}
-                disabled={agentRunning || !cerebrasKey || !cartesiaKey}
+                disabled={agentRunning || !cerebrasKey}
                 className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 w-full"
               >
                 {agentRunning ? 'Connecting...' : 'Start Call'}
